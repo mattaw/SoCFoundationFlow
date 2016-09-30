@@ -1,0 +1,5 @@
+
+def configure(ctx):
+    ctx.SFFUnits.add(bar='default')
+    ctx.SFFUnits.addview('basic_views','foo',bar='foo')
+

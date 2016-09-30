@@ -1,0 +1,13 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+def configure(ctx):
+    ctx.recurse('include_only')
+    ctx.recurse('src_only')
+    ctx.recurse('tb_include_only')
+    ctx.recurse('tb_only')
+    ctx.recurse('two_src')
+
+def build(ctx):
+    pass
+

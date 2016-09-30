@@ -1,0 +1,31 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+import os
+toolpath = os.environ['WAFDIR'] + '/../waf-extensions'
+
+top = '.'
+out = 'build'
+
+
+def options(ctx):
+    ctx.load('SFFbuildmgr', tooldir=toolpath)
+    ctx.load('SFFincisive', tooldir=toolpath)
+    #ctx.load('RTL_compiler', tooldir=toolpath)
+    ctx.load('why')
+
+def configure(ctx):
+    ctx.load('SFFbuildmgr', tooldir=toolpath)
+    ctx.load('SFFincisive', tooldir=toolpath)
+    #ctx.load('RTL_compiler', tooldir=toolpath)
+    ctx.load('why')
+    ctx.recurse('defaults')
+    ctx.recurse('defaults_n_user')
+    ctx.recurse('basic_modules')
+    ctx.recurse('basic_dependencies')
+    ctx.recurse('find_src')
+    ctx.recurse('basic_views')
+    ctx.SFFUnits.finalize()
+
+def build(ctx):
+    pass

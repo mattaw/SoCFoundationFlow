@@ -1,0 +1,3 @@
+
+def configure(ctx):
+    ctx.SFFUnits.add('dual_uart')

@@ -1,0 +1,4 @@
+
+def configure(ctx):
+    ctx.SFFUnits.add(src_dir='src2',src='src/defaults.sv',includes='src',tb='tb_defaults')
+

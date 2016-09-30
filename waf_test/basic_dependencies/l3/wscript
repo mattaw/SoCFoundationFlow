@@ -1,0 +1,4 @@
+
+def configure(ctx):
+    ctx.SFFUnits.add(use='l2,l2_5')
+

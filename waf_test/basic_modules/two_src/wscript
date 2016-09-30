@@ -1,0 +1,5 @@
+
+
+def configure(ctx):
+    ctx.SFFUnits.add(src_dir='src,src2')
+
