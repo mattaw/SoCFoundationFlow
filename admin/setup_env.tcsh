@@ -1,10 +1,10 @@
 #!/bin/tcsh
 set called=($_)
 if ("$called" == "") then
-	if ($?SOCET_ADMIN) then
-		set rootdir=$SOCET_ADMIN
+	if ($?SFF_ADMIN) then
+		set rootdir=$SFF_ADMIN
 	else
-		echo "Please set SOCET_ADMIN to the repo admin folder."
+		echo "Please set SFF_ADMIN to the repo admin folder."
 		exit 1
 	endif
 else
