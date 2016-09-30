@@ -3,9 +3,9 @@ module add_one (
     output [15:0]  b
 );
 
-assign a = b + 1;
+assign b = a + 1;
 
 
 endmodule
 
- 
+

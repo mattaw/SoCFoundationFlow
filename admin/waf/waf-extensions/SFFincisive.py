@@ -99,23 +99,17 @@ def _simulate(ctx, gui):
     build_cds_lib_file(ctx)
     build_hdl_var_file(ctx)
 
-
-
-
-
     top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
     #Run ncelab
     ctx(name='ncelab',
         rule='${NCELAB} -timescale ''1ns/10ps'' -access rwc %s' % top.use('tb')[0],
-        always = True,
-        after=top.use('tb'))
+        always = True,)
 
     #Run ncsim
     ctx(name='ncsim',
         rule='${NCSIM} %s %s' % (gui,top.use('tb')[0]),
         always = True,
         after='ncelab')
-
 
 class IncisiveTask(Task.Task):
     def __init__(self, *k, **kw):

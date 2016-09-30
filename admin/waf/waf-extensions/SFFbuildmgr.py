@@ -604,7 +604,8 @@ def SFF_verilog_scan(task):
     files = [a.path_from(bld.bldnode) for a in task.inputs]
     cmd += files
 
-    out = bld.cmd_and_log(cmd, cwd=bld.variant_dir, quiet=Context.BOTH)
+    (out,err) = bld.cmd_and_log(cmd, cwd=bld.variant_dir, output=Context.BOTH,
+                                quiet=Context.STDOUT)
 
     #Match the `line directives
     lst_src = []

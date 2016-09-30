@@ -1,4 +1,4 @@
 
 def configure(ctx):
-    ctx.SFFUnits.add(use='l4',tb_use='l2_5')
+    ctx.SFFUnits.add(tb='foo',use='l4',tb_use='l2_5')
 

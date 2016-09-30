@@ -1,3 +1,5 @@
+# This test attaches the meaningless kwarg bar into the views for tracking
+# purposes only.
 
 def configure(ctx):
     ctx.SFFUnits.add(bar='default')

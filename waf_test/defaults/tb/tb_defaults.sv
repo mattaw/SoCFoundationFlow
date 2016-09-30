@@ -10,7 +10,7 @@ module tb_defaults;
     string file_str;
     const string file_name = {`RESOURCES,"/defaults.txt"};
     //string file_name;
-    
+
     initial begin
         //$value$plusargs ("RESOURCES=%s", file_name);
         //file_name = {file_name, "/defaults.txt"};
@@ -18,7 +18,7 @@ module tb_defaults;
         if (fd == 0) begin
             $display ("%6dns Default TB: Failed to open default file %s for reading!",
                 $time, file_name);
-            $stop; 
+            $stop;
         end else begin
             $display ("%6dns Default TB: Opened default file %s for reading.",
                 $time, file_name);
@@ -45,9 +45,11 @@ module tb_defaults;
     assign out_n_incr2 = out + `INCREMENT2;
 
     initial begin
+        #1;
         in = 14;
-       
-        if (out_n_incr2 != 16) begin
+        #1;
+
+        if (out_n_incr2 != 17) begin
             $display ("%6dns Default TB: Something went wrong. Got %d instead of 16.", $time, out_n_incr2);
             $stop;
         end else begin
@@ -58,4 +60,4 @@ module tb_defaults;
 
 endmodule
 
- 
+
