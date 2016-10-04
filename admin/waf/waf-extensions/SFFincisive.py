@@ -91,7 +91,60 @@ def _simulate(ctx, gui):
     """
     ctx.env['SFFUnits'] = load_SFFUnits(ctx)
 
-    units_taskgen(ctx)
+    #units_taskgen(ctx)
+    """
+    Creates the directory path and nodes in the build directory.
+    Creates the testbench library separately
+    Creates a taskgen from each other library in units_hdl
+    """
+
+    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
+
+    for u in top.synu_deps + top.simu_deps:
+        lib = u.script.parent.get_bld().make_node(u.name+'_nclib')
+        lib.mkdir()
+        u.b['nclib'] = lib
+
+        if u.use('use'):
+            tsk = IncisiveTask(
+                name=u.name,
+                target=lib,
+                source=u.use('src'),
+                includes=u.use('includes'),
+                after=u.use('use'),
+                output=lib,
+                scan=SFF_verilog_scan,
+                env=ctx.env)
+            ctx.add_to_group(tsk)
+        else:
+            tsk = IncisiveTask(
+                name=u.name,
+                target=lib,
+                source=u.use('src'),
+                output=lib,
+                includes=u.use('includes'),
+                scan=SFF_verilog_scan,
+                env=ctx.env)
+            ctx.add_to_group(tsk)
+
+
+    """
+    Create the testbench taskgen last as it is always at the top dep
+    """
+    tb_lib = top.script.parent.get_bld().make_node(top.use('tb')[0]+'_nclib')
+    tb_lib.mkdir()
+    top.b['tbnclib'] = tb_lib
+
+    tsk = IncisiveTask(
+        name=top.use('tb'),
+        target=tb_lib,
+        source=top.use('tb_src'),
+        output=tb_lib,
+        includes=top.use('tb_includes'),
+        after=ctx.env.top_level,
+        scan=SFF_verilog_scan,
+        env=ctx.env )
+    ctx.add_to_group(tsk)
     """
     Create the cds.lib and hdl.var in the toplevel of the build directory with
     the testbench defined in cds.lib and as WORKLIB in hdl.var.
@@ -145,71 +198,6 @@ class IncisiveTask(Task.Task):
         cmd = '%s -SV -linedebug -work %s %s %s' % (self.env['NCVLOG'][0], self.outputs[0],
             incs, src)
         return self.exec_command(cmd)
-
-
-def units_taskgen(ctx):
-    """
-    Creates the directory path and nodes in the build directory.
-    Creates the testbench library separately
-    Creates a taskgen from each other library in units_hdl
-    """
-
-    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
-
-    for m in top.synu_deps + top.simu_deps:
-        lib = m.script.parent.get_bld().make_node(m.name+'_nclib')
-        lib.mkdir()
-        m.b['nclib'] = lib
-
-
-        if m.use('use'):
-            tsk = IncisiveTask(
-                name=m.name,
-                target=lib,
-                source=m.use('src'),
-                includes=m.use('includes'),
-                after=m.use('use'),
-                output=lib,
-                scan=SFF_verilog_scan,
-                env=ctx.env)
-            ctx.add_to_group(tsk)
-        else:
-            tsk = IncisiveTask(
-                name=m.name,
-                target=lib,
-                source=m.use('src'),
-                output=lib,
-                includes=m.use('includes'),
-                scan=SFF_verilog_scan,
-                env=ctx.env)
-            ctx.add_to_group(tsk)
-
-    """
-    Create the testbench taskgen last as it is always at the top dep
-    """
-    tb_lib = top.script.parent.get_bld().make_node(top.use('tb')[0]+'_nclib')
-    tb_lib.mkdir()
-    top.b['tbnclib'] = tb_lib
-
-    '''
-    ctx(name=top.use('tb'),
-        rule=run,
-        target=tb_lib,
-        source=top.use('tb_src'),
-        includes=top.use('tb_includes'),
-        after=ctx.env.top_level,
-        scan=SFF_verilog_scan)
-    '''
-    tsk = IncisiveTask(
-        name=top.use('tb'),
-        target=tb_lib,
-        source=top.use('tb_src'),
-        output=tb_lib,
-        includes=top.use('tb_includes'),
-        after=ctx.env.top_level,
-        scan=SFF_verilog_scan,
-        env=ctx.env )
-    ctx.add_to_group(tsk)
 
 
 def build_cds_lib_file(ctx):
