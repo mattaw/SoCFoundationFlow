@@ -13,7 +13,6 @@ else
   rootdir=$SFF_ADMIN
 fi
 
-export PATH=$PATH:$rootdir/veripool
 export PATH=$PATH:$rootdir/waf/waf-current
 export WAFDIR=$rootdir/waf/waf-current
 
