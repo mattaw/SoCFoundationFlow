@@ -34,5 +34,20 @@ The following environments will be supported in future updates.
 
 ## Dependencies
 
+The following tools must be installed for all simulation environments.
+
 - [Veripool Verilog-Perl](https://www.veripool.org/wiki/verilog-perl)
   - Requires the command "vppreproc" to be on your path
+
+### Incisive
+
+The following tools must be installed for the incisive simulation environment.
+
+### Modelsim
+
+The following tools must be installed for the modelsim simulation environment.
+
+### Iverilog
+
+The following tools must be installed for the iverilog simuation environment.
+
