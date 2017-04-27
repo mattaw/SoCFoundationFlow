@@ -78,6 +78,7 @@ def _simulate(ctx, gui):
     """
     Create the testbench taskgen last as it is always at the top dep
     """
+    ctx.add_group()
     tb_lib = top.script.parent.get_bld().make_node('work_vlib')
     tb_lib.mkdir()
     top.b['tbvlib'] = tb_lib
@@ -92,14 +93,16 @@ def _simulate(ctx, gui):
         scan=SFF_verilog_scan,
         env=ctx.env )
     ctx.add_to_group(tsk)
+    ctx.add_group()
 
     """
     Run the Modelsim command with gui options provided.
     """
     ##Run vsim
+    print("TBSRC : " + str(top.use('tb_src')))
     ctx(name='vsim',
         rule='vsim %s -lib %s %s' % (gui,top.b['tbvlib'], top.use('tb')[0]),
-        always = True,)
+        always = True)
 
 class ModelsimTask(Task.Task):
     def __init__(self, *k, **kw):
@@ -128,6 +131,6 @@ class ModelsimTask(Task.Task):
                 incs += '+incdir+' + inc.bldpath() + ' '
         res = ''
         cmd_setup = 'vlib %s; ' % (self.outputs[0])
-        cmd = '%s vlog -sv -novopt -work %s %s %s' % (cmd_setup, self.outputs[0],
+        cmd = '%s vlog -sv -work %s %s %s' % (cmd_setup, self.outputs[0],
             incs, src)
         return self.exec_command(cmd)
