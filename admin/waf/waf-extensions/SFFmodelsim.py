@@ -1,17 +1,12 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# Matthew Swabey, 2015
+# John Skubic, 2017
 
 """
 Classes and helper functions used to provide
 "sim_source"
 "verify_source"
-via the Cadence Incisive Suite.
-
-TODO: Read book section 8.4.3
-1) Create tasks using taskgen
-2) Create function to prep strings and includes
-3) Try to use the examples to find the files created by ncvlog inside the lib dir and add it to the deps to get proper dependency tracking and cleaning.
+via the Mentor Graphics Modelsim suite
 """
 
 from waflib import Context
@@ -30,14 +25,14 @@ from SFFbuildmgr import SFFUnitsCont, SFFUnit, SFFView, load_SFFUnits
 
 def configure(ctx):
     """
-    Incisive: Find all the necessary parts of the Incisive Simulator.
+    Modelsim: Find all the necessary parts of the Modelsim Simulator.
     """
-    ctx.find_program('ncvlog')
-    ctx.find_program('ncvhdl')
-    ctx.find_program('ncsim')
-    ctx.find_program('ncelab')
+    ctx.find_program('vcom')
+    ctx.find_program('vmake')
+    ctx.find_program('vsim')
 
 def _simulate(ctx, gui):
+    return
     """
     Load the SFFUnits into the system.
     Create the necessary tasks to build the simulation libs
