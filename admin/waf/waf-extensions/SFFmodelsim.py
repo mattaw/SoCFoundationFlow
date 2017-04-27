@@ -27,38 +27,33 @@ def configure(ctx):
     """
     Modelsim: Find all the necessary parts of the Modelsim Simulator.
     """
+    ctx.find_program('vlog')
     ctx.find_program('vcom')
-    ctx.find_program('vmake')
+    ctx.find_program('vlib')
     ctx.find_program('vsim')
 
 def _simulate(ctx, gui):
-    return
     """
     Load the SFFUnits into the system.
     Create the necessary tasks to build the simulation libs
-    Create a toplevel CDS.lib and hdl.var with the mappings for all the
-    libraries and deps.
-    Kick ncelab targetting the testbench
-    Kick ncsim targetting the testbench
+    Kick vsim targetting the testbench
     """
     ctx.env['SFFUnits'] = load_SFFUnits(ctx)
 
-    #units_taskgen(ctx)
     """
     Creates the directory path and nodes in the build directory.
-    Creates the testbench library separately
     Creates a taskgen from each other library in units_hdl
     """
 
     top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
 
     for u in top.synu_deps + top.simu_deps:
-        lib = u.script.parent.get_bld().make_node(u.name+'_nclib')
+        lib = u.script.parent.get_bld().make_node('work_vlib')
         lib.mkdir()
-        u.b['nclib'] = lib
+        u.b['vlib'] = lib
 
         if u.use('use'):
-            tsk = IncisiveTask(
+            tsk = ModelsimTask(
                 name=u.name,
                 target=lib,
                 source=u.use('src'),
@@ -69,7 +64,7 @@ def _simulate(ctx, gui):
                 env=ctx.env)
             ctx.add_to_group(tsk)
         else:
-            tsk = IncisiveTask(
+            tsk = ModelsimTask(
                 name=u.name,
                 target=lib,
                 source=u.use('src'),
@@ -83,11 +78,11 @@ def _simulate(ctx, gui):
     """
     Create the testbench taskgen last as it is always at the top dep
     """
-    tb_lib = top.script.parent.get_bld().make_node(top.use('tb')[0]+'_nclib')
+    tb_lib = top.script.parent.get_bld().make_node('work_vlib')
     tb_lib.mkdir()
-    top.b['tbnclib'] = tb_lib
+    top.b['tbvlib'] = tb_lib
 
-    tsk = IncisiveTask(
+    tsk = ModelsimTask(
         name=top.use('tb'),
         target=tb_lib,
         source=top.use('tb_src'),
@@ -97,33 +92,18 @@ def _simulate(ctx, gui):
         scan=SFF_verilog_scan,
         env=ctx.env )
     ctx.add_to_group(tsk)
-    """
-    Create the cds.lib and hdl.var in the toplevel of the build directory with
-    the testbench defined in cds.lib and as WORKLIB in hdl.var.
-    """
-    build_cds_lib_file(ctx)
-    build_hdl_var_file(ctx)
 
-    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
-    #Run ncelab
-    ctx(name='ncelab',
-        rule='${NCELAB} -timescale ''1ns/10ps'' -access rwc %s' % top.use('tb')[0],
+    """
+    Run the Modelsim command with gui options provided.
+    """
+    ##Run vsim
+    ctx(name='vsim',
+        rule='vsim %s -lib %s %s' % (gui,top.b['tbvlib'], top.use('tb')[0]),
         always = True,)
 
-    #Run ncsim
-    ctx(name='ncsim',
-        rule='${NCSIM} %s %s' % (gui,top.use('tb')[0]),
-        always = True,
-        after='ncelab')
-
-class IncisiveTask(Task.Task):
+class ModelsimTask(Task.Task):
     def __init__(self, *k, **kw):
         Task.Task.__init__(self, *k, **kw)
-
-        self.dep_vars = ['VLOG_EXT']
-        self.dep_vars += ['VHDL_EXT']
-        self.dep_vars += ['SVLOG_EXT']
-        self.dep_vars += ['SDC_EXT']
 
         self.set_inputs(list(kw['source']))
         self.set_outputs(kw['output'])
@@ -145,39 +125,9 @@ class IncisiveTask(Task.Task):
         if hasattr(self.generator,'includes'):
             incs = ''
             for inc in getattr(self.generator,'includes'):
-                incs += '-incdir ' + inc.bldpath() + ' '
+                incs += '+incdir+' + inc.bldpath() + ' '
         res = ''
-        cmd = '%s -SV -linedebug -work %s %s %s' % (self.env['NCVLOG'][0], self.outputs[0],
+        cmd_setup = 'vlib %s; ' % (self.outputs[0])
+        cmd = '%s vlog -sv -novopt -work %s %s %s' % (cmd_setup, self.outputs[0],
             incs, src)
         return self.exec_command(cmd)
-
-
-def build_cds_lib_file(ctx):
-    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
-    cds_lib = ctx.path.make_node('cds.lib').get_bld()
-    cds_lib.write('DEFINE {0} ./{1}\n'.format(top.b['tbnclib'],
-        top.b['tbnclib'].bldpath()))
-    for m in ctx.env['SFFUnits'].units:
-        md = ctx.env['SFFUnits'].getunit(m)
-        cds_lib.write('DEFINE {0} ./{1}\n'.format((md.b['nclib']),
-            md.b['nclib'].bldpath()), flags='a')
-
-def build_hdl_var_file(ctx):
-    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
-    hdl_var = ctx.path.make_node('hdl.var').get_bld()
-    hdl_var.write('DEFINE WORK {0}\n'.format(top.b['tbnclib']))
-    hdl_var.write('DEFINE LIB_MAP (\\\n', flags='a')
-    tb_dir = top.use('tb_dir')
-    hdl_var.write('./{0}/... => {1}'.format(tb_dir.pop().bldpath(),
-         top.b['tbnclib']), flags='a')
-    if tb_dir:
-        for d in tb_dir:
-            hdl_var.write(',\\\n./{0}/... => {1}'.format(d.bldpath(),
-                top.b['nclib']), flags='a')
-    for m in ctx.env['SFFUnits'].units:
-        md = ctx.env['SFFUnits'].getunit(m)
-        for d in md.use('src_dir'):
-            hdl_var.write(',\\\n./{0}/... => {1}'.format(d.bldpath(),
-                md.b['nclib']), flags='a')
-    hdl_var.write(')\n', flags='a')
-

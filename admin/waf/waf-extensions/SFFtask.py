@@ -76,7 +76,7 @@ def verify_source(ctx):
     if sim_env == INCISIVE_ENV:
         SFFincisive._simulate(ctx, '-exit')
     elif sim_env == MODELSIM_ENV:
-        SFFmodelsim._simulate(ctx, '-exit')
+        SFFmodelsim._simulate(ctx, '-c -do "run -a;q"')
 
 Context.g_module.__dict__['verify_source'] = verify_source
 """Inject the verify_source command into the wscript"""
@@ -102,7 +102,7 @@ def sim_source(ctx):
     if sim_env == INCISIVE_ENV:
         SFFincisive._simulate(ctx, '-gui')
     elif sim_env == MODELSIM_ENV:
-        SFFmodelsim._simulate(ctx, '-gui')
+        SFFmodelsim._simulate(ctx, '')
 
 Context.g_module.__dict__['sim_source'] = sim_source
 """Inject the sim_source command into the wscript"""
