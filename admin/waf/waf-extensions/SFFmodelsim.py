@@ -99,7 +99,6 @@ def _simulate(ctx, gui):
     Run the Modelsim command with gui options provided.
     """
     ##Run vsim
-    print("TBSRC : " + str(top.use('tb_src')))
     ctx(name='vsim',
         rule='vsim %s -lib %s %s' % (gui,top.b['tbvlib'], top.use('tb')[0]),
         always = True)
