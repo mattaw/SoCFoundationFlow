@@ -10,13 +10,13 @@ out = 'build'
 
 def options(ctx):
     ctx.load('SFFbuildmgr', tooldir=toolpath)
-    ctx.load('SFFincisive', tooldir=toolpath)
+    ctx.load('SFFtask', tooldir=toolpath)
     #ctx.load('RTL_compiler', tooldir=toolpath)
     ctx.load('why')
 
 def configure(ctx):
     ctx.load('SFFbuildmgr', tooldir=toolpath)
-    ctx.load('SFFincisive', tooldir=toolpath)
+    ctx.load('SFFtask', tooldir=toolpath)
     #ctx.load('RTL_compiler', tooldir=toolpath)
     ctx.load('why')
     ctx.recurse('defaults')

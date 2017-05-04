@@ -12,7 +12,6 @@ else
 	set rootdir=`cd $rootdir && pwd`
 endif
 
-set -f path=("$rootdir/veripool" $path:q)
 set -f path=("$rootdir/waf/waf-current" $path:q)
 
 setenv WAFDIR $rootdir/waf/waf-current

@@ -23,9 +23,10 @@ from waflib import Task
 from waflib import Utils
 from waflib.Configure import conf
 from waflib.TaskGen import feature, before_method, after_method
+import pickle
+import os,sys
 from SFFbuildmgr import SFF_verilog_scan
 from SFFbuildmgr import SFFUnitsCont, SFFUnit, SFFView, load_SFFUnits
-import pickle
 
 def configure(ctx):
     """
@@ -35,50 +36,6 @@ def configure(ctx):
     ctx.find_program('ncvhdl')
     ctx.find_program('ncsim')
     ctx.find_program('ncelab')
-
-class verify_source_ctx(Build.BuildContext):
-    """
-    Subclass waflib.Build.BuildContext to create a new command called
-    verify_source. This command will is a placeholder and will run
-    sim_source after setting the ctx.env['verify_source'] key.
-    """
-    cmd = 'verify_source'
-    fun = 'verify_source'
-
-Context.g_module.__dict__['verify_source_ctx'] = verify_source_ctx
-"""
-Inject the new verify_source command into the running waf build. Requires the
-tool be loaded in the options section to make it exist in both configure and
-build
-"""
-
-def verify_source(ctx):
-    _simulate(ctx, '-exit')
-
-Context.g_module.__dict__['verify_source'] = verify_source
-"""Inject the verify_source command into the wscript"""
-
-class sim_source_ctx(Build.BuildContext):
-    """
-    Subclass waflib.Build.BuildContext to create a new command called
-    sim_source.  This will operate exactly like a build command but find and
-    execute functions from wscript files called 'sim_source'
-    """
-    cmd = 'sim_source'
-    fun = 'sim_source'
-
-Context.g_module.__dict__['sim_source_ctx'] = sim_source_ctx
-"""
-Inject the new sim_source command into the running waf build. Requires the tool
-be loaded in the options section to make it exist in both configure and build
-"""
-
-def sim_source(ctx):
-    _simulate(ctx, '-gui')
-
-Context.g_module.__dict__['sim_source'] = sim_source
-"""Inject the sim_source command into the wscript"""
-
 
 def _simulate(ctx, gui):
     """
