@@ -20,6 +20,38 @@ source $SFF_ADMIN/setup_env.tcsh
 setenv SFF_SIM_ENV <Simulation Environment>
 ~~~~
 
+## Running WAF
+
+All files created by WAF will end up in the build directory.
+
+Clearing the build directory:
+~~~
+waf distclean
+~~~
+
+Setting up your project:
+~~~
+waf configure --top_level=<top_level>
+~~~
+
+Running a simulation without the gui:
+~~~
+waf verify_source
+~~~
+
+Running a simulation with the gui:
+~~~
+waf sim_source
+~~~
+
+Outputting source and include file lists:
+~~~
+waf dump_source
+~~~
+The file dumps will be in a subdirectory of build.  The name of this directory will be the name of the directory will be:
+
+build/<dir_of_wscript>/work_dump/
+
 ## Currently Supported Simulation Environments
 
 The simulation environment dictates what tools will be used when simulating designs.  The following list are values that can be set in the SFF_SIM_ENV variable to choose the respective environment.

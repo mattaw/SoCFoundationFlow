@@ -8,7 +8,6 @@ Classes and helper functions used to provide
 "sim_source"
 "verify_source"
 "dump_source"
-"dump_include"
 """
 
 import os
@@ -30,7 +29,10 @@ import SFFmodelsim
 
 INCISIVE_ENV = 'incisive'
 MODELSIM_ENV = 'modelsim'
-VALID_ENVS = [INCISIVE_ENV, MODELSIM_ENV] 
+VALID_ENVS = [INCISIVE_ENV, MODELSIM_ENV]
+
+SRC_DUMP = 'srcs.dump'
+INC_DUMP = 'incs.dump' 
 
 def get_sim_env():
     """
@@ -114,21 +116,89 @@ class dump_source_ctx(Build.BuildContext):
 Context.g_module.__dict__['dump_source_ctx'] = dump_source_ctx
 
 def dump_source(ctx):
-    #TODO: Implement dump_source
-    pass
+    """ 
+    Load the SFFUnits into the system. 
+    Output each file to standard out.
+    """
+    ctx.env['SFFUnits'] = load_SFFUnits(ctx)
+
+    """
+    Creates the directory path and nodes in the build directory.
+    Creates a taskgen from each other library in units_hdl
+    """
+    top = ctx.env['SFFUnits'].getunit(ctx.env.top_level)
+
+    """
+    Ensure the output files are all cleared before running the command
+    to prevent duplicate files in the output.
+    """
+    for u in top.synu_deps + top.simu_deps:
+      lib = u.script.parent.get_bld().make_node('work_dump')
+      src_file = ctx.out_dir + '/' + lib.bldpath() + '/' + SRC_DUMP
+      inc_file = ctx.out_dir + '/' + lib.bldpath() + '/' + INC_DUMP
+      try:
+        os.remove(src_file)
+      except:
+        pass
+      try:
+        os.remove(inc_file)
+      except:
+        pass
+      
+  
+    for u in top.synu_deps + top.simu_deps:
+      lib = u.script.parent.get_bld().make_node('work_dump')
+      lib.mkdir()
+      
+      if u.use('use'):
+        tsk = DumpTask(
+          name=u.name,
+          source=u.use('src'),
+          includes=u.use('includes'),
+          after=u.use('use'),
+          output=lib,
+          scan=SFF_verilog_scan,
+          env=ctx.env)
+        ctx.add_to_group(tsk) 
+      else:
+        tsk = DumpTask(
+          name=u.name,
+          source=u.use('src'),
+          includes=u.use('includes'),
+          output=lib,
+          scan=SFF_verilog_scan,
+          env=ctx.env)
+        ctx.add_to_group(tsk)
 
 Context.g_module.__dict__['dump_source'] = dump_source
 
-class dump_include_ctx(Build.BuildContext):
-    cmd = 'dump_include'
-    fun = 'dump_include'
+class DumpTask(Task.Task):
+    def __init__(self, *k, **kw):
+        Task.Task.__init__(self, *k, **kw)
 
-Context.g_module.__dict__['dump_include_ctx'] = dump_include_ctx
+        self.set_inputs(list(kw['source']))
+        self.set_outputs(kw['output'])
+        self.includes = kw['includes']
+        from types import MethodType
+        self.scan = MethodType(kw['scan'],self)
 
-def dump_include(ctx):
-    #TODO: Implement dump_include
-    pass
+    def __str__(self):
+        return '%s: %s\n' % (self.__class__.__name__,self.outputs[0])
 
-Context.g_module.__dict__['dump_include'] = dump_include
-
-
+    def run(self):
+        src = ''
+        for s in self.inputs:
+            src += s.bldpath() + '\n'
+        tgt = self.outputs[0].bldpath()
+        incs = ''
+        if hasattr(self.generator,'includes'):
+            incs = ''
+            for inc in getattr(self.generator,'includes'):
+              incs += inc.bldpath() + '\n'
+        src_file = self.outputs[0].bldpath()+'/'+ SRC_DUMP
+        inc_file = self.outputs[0].bldpath()+'/'+ INC_DUMP
+        cmd_src = "echo '%s' >> %s" % (src, src_file)
+        cmd_include = "echo '%s' >> %s" % (incs, inc_file)
+        cmd = "%s;%s" % (cmd_src, cmd_include)
+        
+        return self.exec_command(cmd)
